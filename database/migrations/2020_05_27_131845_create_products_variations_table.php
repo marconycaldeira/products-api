@@ -18,7 +18,7 @@ class CreateProductsVariationsTable extends Migration
             $table->id();
 
             $table->string('name');
-            $table->integer('type')->comment('1 - Color; 2 - Size');
+            $table->integer('type')->nullable()->comment('NULL - Default variation, 1 - Color; 2 - Size');
             $table->integer('initial_inventary');
             $table->integer('actual_inventary');
             $table->decimal('price');
