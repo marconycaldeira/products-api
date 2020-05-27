@@ -1,79 +1,362 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+# API de Produtos
+## Funcionalidades
+#### Usuários
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+- Cadastro de usuários;
+- Autenticação utilizando JWT;
 
-## About Laravel
+#### Produtos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Listagem;
+- Cadastro;
+	- Produtos com variação de cores;
+	- Produtos sem variação de cores;
+- Edição;
+- Exclusão.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Instalação
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Clonar este repositório `git clone https://github.com/marconycaldeira/products-api`;
+2. Criar um banco de dados;
+3. Entrar no diretório do projeto e executar o comando `composer install`;
+4. Criar um arquivo **.env** na raiz do projeto (utilize o conteúdo do arquivo **.env.example**);
+4.1. Configurar as variáveis de conexão com do seu banco de dados
+`DB_CONNECTION=[driver do banco], DB_HOST=[host do banco]`
+`DB_PORT=[porta do banco]`
+`DB_DATABASE=[nome do banco de dados]`
+`DB_USERNAME=[usuário do banco de dados]`
+`DB_PASSWORD=[senha do banco de dados]`
+5. Executar o comando `php artisan key:generate`;
+6. Executar o comando `php artisan jwt:secret`;
+7. Executar o comando `php artisan migrate`;
 
-## Learning Laravel
+## Utilização
+### Cadastro
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Basta realizar uma requisição do tipo `POST` para a rota `[url de sua aplicação]/api/user` enviando os seguintes dados:
+```javascript
+{ 
+	name: "nome do usuário",
+	email: "email do usuário",
+	password: "senha do usuário",
+	password_confirmation: "confirmação da senha do usuário"
+}
+```
+Se a requisição funcionar, você terá como resposta algo parecido com isso:
+```javascript
+{ 
+    name: "Marcony Caldeira",
+    email: "marconycaldeira@gmail.com",
+    updated_at: "2020-05-27T19:34:46.000000Z",
+    created_at: "2020-05-27T19:34:46.000000Z",
+    id: 2
+}
+```
+### Autenticação
+Basta realizar uma requisição do tipo `POST` para a rota `[url de sua aplicação]/api/auth/login` enviando os seguintes dados:
+```javascript
+{ 
+	email: "email do usuário",
+	password: "senha do usuário",
+}
+```
+Se a requisição funcionar, você terá como resposta algo parecido com isso:
+```javascript
+{ 
+    access_token: "...",
+    token_type: "bearer",
+    expires_in: 3600
+}
+```
+**Observação: ** você precisará deste token para utilizar os end-points dos produtos
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Produtos
+#### Criação
+**Observação: lembre de adicionar o access_token ao cabeçalho da requisição (Authorization Bearer [access_token])**
 
-## Laravel Sponsors
+**1. Produtos sem variação de cores:**
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Basta realizar uma requisição do tipo `POST` para a rota `[url de sua aplicação]/api/products` enviando os seguintes dados:
+```javascript
+{ 
+	slug: "slug-do-produto",
+	name: "Nome do Produto",
+	initial_inventary: 100, //estoque inicial
+	actual_inventary: 100, //estoque atual
+	price: 44.90 //valor unitário do produto
+	hasVariation: false //informa se o produto possui variações
+}
+```
+Se a requisição funcionar, você terá como resposta algo parecido com isso:
+```javascript
+{
+    slug: "camisa-adidas",
+    name: "Camisa Adidas",
+    description: null,
+    created_by: 2,
+    updated_at: "2020-05-27T19:46:43.000000Z",
+    created_at: "2020-05-27T19:46:43.000000Z",
+    id: 4,
+    variations: [
+        {
+            id: 5,
+            name: "default",
+            type: null,
+            initial_inventary: 100,
+            actual_inventary: 100,
+            price: 44.90,
+            created_by: {
+                id: 2,
+                name: "Marcony Caldeira",
+                email: "marconycaldeira@gmail.com",
+                email_verified_at: null,
+                created_at: "2020-05-27T19:34:46.000000Z",
+                updated_at: "2020-05-27T19:34:46.000000Z",
+                deleted_at: null
+            },
+            product_id: 4,
+            created_at: "2020-05-27T19:46:43.000000Z",
+            updated_at: "2020-05-27T19:46:43.000000Z",
+            deleted_at: null
+        }
+    ]
+}
+```
+**2. Produtos com variação de cores:**
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-- [Appoly](https://www.appoly.co.uk)
-- [OP.GG](https://op.gg)
-- [云软科技](http://www.yunruan.ltd/)
+Basta realizar uma requisição do tipo `POST` para a rota `[url de sua aplicação]/api/products` enviando os seguintes dados:
+```javascript
+{ 
+	slug: "slug-do-produto",
+	name: "Nome do Produto",
+	hasVariation: true, //informa se o produto possui variações
+	variations:[
+	{
+		name: "Azul",
+		type: 1,  //1 = Cor, 2 = Tamanho
+		initial_inventary: 100, //estoque inicial
+		actual_inventary: 100, //estoque atual
+		price: 44.90 //valor unitário do produto
+	},
+	{
+		name: "Preta",
+		type: 1,  //1 = Cor, 2 = Tamanho
+		initial_inventary: 100, //estoque inicial
+		actual_inventary: 100, //estoque atual
+		price: 45.90 //valor unitário do produto
+	},
+]
+}
+```
+Se a requisição funcionar, você terá como resposta algo parecido com isso:
+```javascript
+{
+    slug: "camisa-adidas",
+    name: "Camisa Adidas",
+    description: null,
+    created_by: 2,
+    updated_at: "2020-05-27T19:46:43.000000Z",
+    created_at: "2020-05-27T19:46:43.000000Z",
+    id: 4,
+    variations: [
+        {
+            id: 5,
+            name: "Azl",
+            type: null,
+            initial_inventary: 100,
+            actual_inventary: 100,
+            price: 44.90,
+            created_by: {
+                id: 2,
+                name: "Marcony Caldeira",
+                email: "marconycaldeira@gmail.com",
+                email_verified_at: null,
+                created_at: "2020-05-27T19:34:46.000000Z",
+                updated_at: "2020-05-27T19:34:46.000000Z",
+                deleted_at: null
+            },
+            product_id: 4,
+            created_at: "2020-05-27T19:46:43.000000Z",
+            updated_at: "2020-05-27T19:46:43.000000Z",
+            deleted_at: null
+        },
+		{
+            id: 6,
+            name: "Preta",
+            type: null,
+            initial_inventary: 100,
+            actual_inventary: 100,
+            price: 45.90,
+            created_by: {
+                id: 2,
+                name: "Marcony Caldeira",
+                email: "marconycaldeira@gmail.com",
+                email_verified_at: null,
+                created_at: "2020-05-27T19:34:46.000000Z",
+                updated_at: "2020-05-27T19:34:46.000000Z",
+                deleted_at: null
+            },
+            product_id: 4,
+            created_at: "2020-05-27T19:46:43.000000Z",
+            updated_at: "2020-05-27T19:46:43.000000Z",
+            deleted_at: null
+        }
+    ]
+}
+```
+#### Edição
+**Observação: lembre de adicionar o access_token ao cabeçalho da requisição (Authorization Bearer [access_token])**
 
-## Contributing
+**1. Produtos sem variação de cores:**
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Basta realizar uma requisição do tipo `PUT` para a rota `[url de sua aplicação]/api/products/[id do produto]` enviando os seguintes dados:
+```javascript
+{ 
+	slug: "slug-do-produto",
+	name: "Nome do Produto",
+	initial_inventary: 100, //estoque inicial
+	actual_inventary: 100, //estoque atual
+	price: 44.90 //valor unitário do produto
+	hasVariation: false //informa se o produto possui variações
+}
+```
+Se a requisição funcionar, você terá como resposta algo parecido com isso:
+```javascript
+{
+    slug: "camisa-adidas",
+    name: "Camisa Adidas",
+    description: null,
+    created_by: 2,
+    updated_at: "2020-05-27T19:46:43.000000Z",
+    created_at: "2020-05-27T19:46:43.000000Z",
+    id: 4,
+    variations: [
+        {
+            id: 5,
+            name: "default",
+            type: null,
+            initial_inventary: 100,
+            actual_inventary: 100,
+            price: 44.90,
+            created_by: {
+                id: 2,
+                name: "Marcony Caldeira",
+                email: "marconycaldeira@gmail.com",
+                email_verified_at: null,
+                created_at: "2020-05-27T19:34:46.000000Z",
+                updated_at: "2020-05-27T19:34:46.000000Z",
+                deleted_at: null
+            },
+            product_id: 4,
+            created_at: "2020-05-27T19:46:43.000000Z",
+            updated_at: "2020-05-27T19:46:43.000000Z",
+            deleted_at: null
+        }
+    ]
+}
+```
+**2. Produtos com variação de cores:**
 
-## Code of Conduct
+Basta realizar uma requisição do tipo `PUT` para a rota `[url de sua aplicação]/api/products/[id do produto]` enviando os seguintes dados:
+```javascript
+{ 
+slug: "slug-do-produto",
+name: "Nome do Produto",
+hasVariation: true, //informa se o produto possui variações
+variations:[
+	{
+		name: "Azul",
+		type: 1,  //1 = Cor, 2 = Tamanho
+		initial_inventary: 100, //estoque inicial
+		actual_inventary: 100, //estoque atual
+		price: 44.90 //valor unitário do produto
+	},
+	{
+		name: "Preta",
+		type: 1,  //1 = Cor, 2 = Tamanho
+		initial_inventary: 100, //estoque inicial
+		actual_inventary: 100, //estoque atual
+		price: 45.90 //valor unitário do produto
+	},
+]
+}
+```
+Se a requisição funcionar, você terá como resposta algo parecido com isso:
+```javascript
+{
+    slug: "camisa-adidas",
+    name: "Camisa Adidas",
+    description: null,
+    created_by: 2,
+    updated_at: "2020-05-27T19:46:43.000000Z",
+    created_at: "2020-05-27T19:46:43.000000Z",
+    id: 4,
+    variations: [
+        {
+            id: 5,
+            name: "Azl",
+            type: null,
+            initial_inventary: 100,
+            actual_inventary: 100,
+            price: 44.90,
+            created_by: {
+                id: 2,
+                name: "Marcony Caldeira",
+                email: "marconycaldeira@gmail.com",
+                email_verified_at: null,
+                created_at: "2020-05-27T19:34:46.000000Z",
+                updated_at: "2020-05-27T19:34:46.000000Z",
+                deleted_at: null
+            },
+            product_id: 4,
+            created_at: "2020-05-27T19:46:43.000000Z",
+            updated_at: "2020-05-27T19:46:43.000000Z",
+            deleted_at: null
+        },
+		{
+            id: 6,
+            name: "Preta",
+            type: null,
+            initial_inventary: 100,
+            actual_inventary: 100,
+            price: 45.90,
+            created_by: {
+                id: 2,
+                name: "Marcony Caldeira",
+                email: "marconycaldeira@gmail.com",
+                email_verified_at: null,
+                created_at: "2020-05-27T19:34:46.000000Z",
+                updated_at: "2020-05-27T19:34:46.000000Z",
+                deleted_at: null
+            },
+            product_id: 4,
+            created_at: "2020-05-27T19:46:43.000000Z",
+            updated_at: "2020-05-27T19:46:43.000000Z",
+            deleted_at: null
+        }
+    ]
+}
+```
+#### Exclusão
+**Observação: lembre de adicionar o access_token ao cabeçalho da requisição (Authorization Bearer [access_token])**
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Basta realizar uma requisição do tipo `DELETE` para a rota `[url de sua aplicação]/api/products/[id do produto]`
 
-## Security Vulnerabilities
+Se a requisição funcionar, você terá como resposta algo parecido com isso:
+`true`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### Mostrar produto
+**Observação: lembre de adicionar o access_token ao cabeçalho da requisição (Authorization Bearer [access_token])**
 
-## License
+Basta realizar uma requisição do tipo `GET` para a rota `[url de sua aplicação]/api/products/[id do produto]`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### Listar produtos
+**Observação: lembre de adicionar o access_token ao cabeçalho da requisição (Authorization Bearer [access_token])**
+
+Basta realizar uma requisição do tipo `GET` para a rota `[url de sua aplicação]/api/products`
+
+###Fim
+
+------------
+
+Desenvolvido por Marcony Caldeira utilizando o Laravel e a lib tymondesigns/jwt-auth
