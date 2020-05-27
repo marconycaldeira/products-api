@@ -92,8 +92,8 @@ class ProductController extends Controller
             ]);
         }
 
-
-        return response()->json($product->load('variations'), 201);
+        $product->load('variations');
+        return response()->json($product, 201);
     }
 
     /**
@@ -105,7 +105,13 @@ class ProductController extends Controller
     public function show($id)
     {
         $product = Product::find($id);
-        return response()->json($product->load('variations'), 201);
+
+        if($product == null){
+            return response()->json(['message' => 'not found'], 404);
+        }
+
+        $product->load('variations');
+        return response()->json($product, 201);
     }
 
     /**
@@ -121,31 +127,36 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'slug'       => ['required', Rule::unique('products')->ignore($id)],
             'name'       => 'required',
-            'variations' => 'required|array',
+            'variations'        => $request->hasVariation == "true" ? 'required|array' : [],
+            'initial_inventary' => $request->hasVariation == "true" ? [] : 'required|numeric',
+            'price'             => $request->hasVariation == "true" ? [] : 'required|numeric',
+            'actual_inventary'  => $request->hasVariation == "true" ? [] : 'required|numeric',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors());
         }
         
-        foreach($request->variations as $variation){
-           
-            if(!is_array($variation)){
-                return response()->json(['message' => 'variarion needs to be an array'], 401);
-            }
+        if ($request->hasVariation == "true") {
+            foreach($request->variations as $variation){
             
-            $validatorVariations = Validator::make($variation, [
-                'name' => 'required',
-                'type' => 'required',
-                'initial_inventary' => 'required|numeric',
-                'price' => 'required|numeric',
-                'actual_inventary' => 'required|numeric',
-            ]);
-           
-            if ($validatorVariations->fails()) {
-                return response()->json($validatorVariations->errors());
+                if(!is_array($variation)){
+                    return response()->json(['message' => 'variarion needs to be an array'], 401);
+                }
+                
+                $validatorVariations = Validator::make($variation, [
+                    'name' => 'required',
+                    'type' => 'required',
+                    'initial_inventary' => 'required|numeric',
+                    'price' => 'required|numeric',
+                    'actual_inventary' => 'required|numeric',
+                ]);
+            
+                if ($validatorVariations->fails()) {
+                    return response()->json($validatorVariations->errors());
+                }
+            
             }
-           
         }
 
         $product = Product::find($id);
@@ -157,19 +168,28 @@ class ProductController extends Controller
 
         $product->save();
         $product->variations()->delete();
-
-        foreach($request->variations as $variation){
+        if ($request->hasVariation == "true") {
+            foreach($request->variations as $variation){
+                $product->variations()->create([
+                    'name' => $variation['name'],
+                    'type' => $variation['type'],
+                    'initial_inventary' => $variation['initial_inventary'],
+                    'actual_inventary' => $variation['actual_inventary'],
+                    'price' => $variation['price'],
+                    'created_by' => auth()->user()->id,
+                ]);
+            }
+        }else{
             $product->variations()->create([
-                'name' => $variation['name'],
-                'type' => $variation['type'],
-                'initial_inventary' => $variation['initial_inventary'],
-                'actual_inventary' => $variation['actual_inventary'],
-                'price' => $variation['price'],
+                'name' => 'default',
+                'initial_inventary' => $request->initial_inventary,
+                'actual_inventary' => $request->actual_inventary,
+                'price' => $request->price,
                 'created_by' => auth()->user()->id,
             ]);
         }
-
-        return response()->json($product->load('variations'), 201);
+        $product->load('variations');
+        return response()->json($product, 201);
     }
 
     /**
